@@ -1,0 +1,266 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jQuery轮播图</title>
+    <style type="text/css">
+        #pic {
+            width: 400px;
+            height: 300px;
+            margin-left: calc(50% - 150px);
+        }
+    </style>
+</head>
+<body>
+    <div id="pic"></div>
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+    <script>
+        (function( $ ){
+
+          $.fn.mySwiper = function( options, time ) {  
+
+            const _this = this;
+            let ops = options || [];
+            let len = ops.length;
+
+            // 传进来的是否为空
+            if (len === 0) {
+              _this.css({
+                'text-align': 'center',
+                'line-height': `${_this.height()}px`,
+                background: 'palegoldenrod'
+              });
+              _this.html('请传入数据');
+              return _this;
+            }
+
+            // 轮播的时长
+            let timeInterval = time || 2;
+            // len轮播的长度
+            // _n记录当前的值
+            // setItervalTime计时器
+            let _n = 0, setItervalTime;
+
+            // 获取父元素的width
+            let parentDivWidth = this.width()
+            let innerDivWidth = parentDivWidth * len;
+            
+            // 在标签内部添加图片标签和点以及左右箭头
+            let innerDiv = `
+              <div class="innerDivShow"></div>
+              <ul class='dots'></ul>
+              <ul class="arrow">
+                <li>&lt;</li>
+                <li>&gt;</li>
+              </ul>
+            `;
+            // 添加放图片的标签
+            this.append(innerDiv);
+            
+            // 添加图片和小点
+            let innerDivPic = this.children('.innerDivShow');
+            let ulDots = this.children('.dots');
+            ops.map((value, index) => {
+              // 添加图片
+              let img = `
+                <img src=${value.src} alt=${value.alt} key=${value.src}${index} class="mySwiperImg" />
+              `;
+              innerDivPic.append(img);
+
+              // 添加小点，并为初始小点添加类
+              let clickDots = index === 0 ? 'clickDots' : '';
+              if (len !== 1) {
+                let dot =`<li key=dot${index} class="dot ${clickDots}"></li>`;
+                ulDots.append(dot);
+              }
+              return; 
+            })
+
+            // css样式
+            function cssStyle() {
+              _this.css({
+                overflow: 'hidden'
+              })
+              _this.find('.innerDivShow').css({
+                width: `${innerDivWidth}px`,
+                height: '100%'
+              });
+              _this.find('.dots').css({
+                display: 'flex',
+                'justify-content': 'space-between',
+                'flex-direction': 'row',
+                'align-items': 'center',
+                position: 'relative',
+                top: '-32px',
+                left: `${parentDivWidth/2 - len * 8}px`,
+                width: `${len * 16}px`,
+                height: '12px',
+                margin: 0,
+                padding: 0
+              });
+              _this.find('.arrow').css({
+                display: 'flex',
+                'justify-content': 'space-between',
+                'flex-direction': 'row',
+                'align-items': 'center',
+                position: 'relative',
+                top: '-60%',
+                width: `90%`,
+                height: '40px',
+                margin: '0',
+                padding: '0 5%'
+              });
+              _this.find('.arrow').children('li').css({
+                'list-style-type': 'none',
+                  width: '40px',
+                  height: '40px',
+                  'text-align': 'center',
+                  'border-radius': '50%',
+                  background: 'white',
+                  opacity: 0.5,
+                  'font-size': '32px',
+                  'line-height': '40px',
+                  cursor: 'pointer'
+              });
+              innerDivPic.find('.mySwiperImg').css({
+                display: 'inline-block',
+                float: 'left',
+                width: _this.width(),
+                height: _this.height(),
+              });
+              ulDots.find('li').css({
+                'list-style-type': 'none',
+                width: '12px',
+                height: '12px',
+                background: 'white',
+                'border-radius': '50%',
+                cursor: 'pointer'
+              });
+              _this.find('.clickDots').css({
+                background: 'pink' 
+              });
+            }
+
+            // 自动轮播、点击小点、点击箭头的时候逻辑处理
+            function turn(n) {
+              const clickDots = $('.clickDots');
+              _n = clickDots.index() + n ;
+              if(_n === len) {
+                _n = 0;
+              }
+              if(_n < 0) {
+                _n = len + _n
+              }
+              innerDivPic.animate({
+                "margin-left": `-${parentDivWidth * _n}px`
+              }, 400, 'linear');
+
+              clickDots.css({
+                background: 'white'
+              }).removeClass('clickDots');
+
+              $('.dot').eq(_n).addClass('clickDots').css({
+                background: 'pink'
+              });
+            }
+
+            // 设置定时器
+            function autoPlay() {
+              setItervalTime = setInterval(() => {
+                turn(1);
+              },timeInterval * 1000);
+            }
+
+            // 清除定时器
+            function pausePlay() {
+              clearInterval(setItervalTime);
+            }
+
+            // 上一次点击的时间
+            let beginTimeFlag = new Date();
+
+            // 节流函数，在规定时间内多次点击只算一次
+            function throttle(method, arrowIndex){
+              let currentTime = new Date();
+              if(currentTime - beginTimeFlag >= 500){
+                method(arrowIndex);
+                beginTimeFlag = currentTime;
+              }
+            }
+
+            // 点击小点的时候向左或向右轮播
+            ulDots.on('click', 'li', function () {
+              const $this = $(this);
+              pausePlay();
+
+              // 点击当前点的时候不触发
+              if (!$this.is('.clickDots')) {
+                turn($this.index() - _n);
+                $('.clickDots').removeClass('clickDots');
+                $this.addClass('clickDots');
+              }
+            });
+
+            // 点击箭头的时候向左或向右轮播
+            this.children('.arrow').on('click', 'li', function() {
+              pausePlay();
+              const arrowIndex = $(this).index() ? 1 : -1;
+
+              // // 方法1 setTimeoutTime
+              // setTimeout里边this指向window
+              // clearTimeout(this.setTimeoutTime);
+              // this.setTimeoutTime = setTimeout(function() {
+              //   turn(arrowIndex);
+              // }, 200)
+
+              // 方法二  节流函数
+              throttle(turn, arrowIndex);
+
+            })
+
+            // 鼠标移上停止轮播
+            this.on('mousemove', function () {
+              pausePlay();
+            })
+
+            // 鼠标离开自动轮播
+            this.on('mouseout', function () {
+              autoPlay();
+            })
+
+            // 加载css样式
+            cssStyle();
+
+            // 自动轮播
+            autoPlay();
+
+            // 方便后边的链式引用
+            return this;
+          };
+        })( jQuery );
+
+        var options = [
+          {
+            src: 'https://ss0.bdstatic.com/6ONWsjip0QIZ8tyhnq/it/u=1618097094,4154452434&fm=77&w_h=121_75&cs=423647557,799948659',
+            alt: '沙漠',
+          },
+          {
+            src: 'https://ss0.bdstatic.com/6ONWsjip0QIZ8tyhnq/it/u=3545401083,2251952841&fm=77&w_h=121_75&cs=2008984878,1171842780',
+            alt: '美女',
+          },
+          {
+            src: 'https://ss0.bdstatic.com/6ONWsjip0QIZ8tyhnq/it/u=3618554304,2887917621&fm=77&w_h=121_75&cs=2820658166,1330608299',
+            alt: '萌宠',
+          },
+          {
+            src: 'https://ss0.bdstatic.com/6ONWsjip0QIZ8tyhnq/it/u=648300297,3284313282&fm=77&w_h=121_75&cs=1136402502,639612303',
+            alt: '山水',
+          }
+        ];
+        $('#pic').mySwiper(options);
+    </script>
+
+
+</body>
+</html>
