@@ -36,14 +36,14 @@
             }
 
             // 轮播的时长
-            let timeInterval = time || 2;
+            let timeInterval = time || 3;
             // len轮播的长度
             // _n记录当前的值
             // setItervalTime计时器
             let _n = 0, setItervalTime;
 
             // 获取父元素的width
-            let parentDivWidth = this.width()
+            let parentDivWidth = _this.width()
             let innerDivWidth = parentDivWidth * len;
             
             // 在标签内部添加图片标签和点以及左右箭头
@@ -56,11 +56,11 @@
               </ul>
             `;
             // 添加放图片的标签
-            this.append(innerDiv);
+            _this.append(innerDiv);
             
             // 添加图片和小点
-            let innerDivPic = this.children('.innerDivShow');
-            let ulDots = this.children('.dots');
+            let innerDivPic = _this.children('.innerDivShow');
+            let ulDots = _this.children('.dots');
             ops.map((value, index) => {
               // 添加图片
               let img = `
@@ -203,7 +203,7 @@
             });
 
             // 点击箭头的时候向左或向右轮播
-            this.children('.arrow').on('click', 'li', function() {
+            _this.children('.arrow').on('click', 'li', function() {
               pausePlay();
               const arrowIndex = $(this).index() ? 1 : -1;
 
@@ -220,12 +220,12 @@
             })
 
             // 鼠标移上停止轮播
-            this.on('mousemove', function () {
+            _this.on('mousemove', function () {
               pausePlay();
             })
 
             // 鼠标离开自动轮播
-            this.on('mouseout', function () {
+            _this.on('mouseout', function () {
               autoPlay();
             })
 
@@ -236,7 +236,7 @@
             autoPlay();
 
             // 方便后边的链式引用
-            return this;
+            return _this;
           };
         })( jQuery );
 
@@ -258,7 +258,9 @@
             alt: '山水',
           }
         ];
-        $('#pic').mySwiper(options);
+        $('#pic').mySwiper(options).css({
+          background: 'red'
+        });
     </script>
 
 
